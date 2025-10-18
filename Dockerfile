@@ -1,35 +1,32 @@
-# --- Etapa 1: Base de Python ---
-# Usamos una imagen oficial y ligera de Python como base.
-# 'slim' es una versión que tiene lo esencial, haciendo nuestra imagen final más pequeña.
+# --- Fase 1: Base ---
+# Usamos una imagen oficial de Python. La versión 'slim' es más ligera, ideal para producción.
 FROM python:3.11-slim
 
-# --- Etapa 2: Configuración del Entorno ---
 # Establecemos el directorio de trabajo dentro del contenedor.
-# Todas las siguientes instrucciones se ejecutarán desde /app.
+# A partir de aquí, todos los comandos se ejecutan en /app.
 WORKDIR /app
 
-# --- Etapa 3: Instalar Dependencias ---
-# Copiamos solo el archivo de requerimientos primero. Docker es inteligente
-# y si este archivo no cambia, usará la caché de esta capa, haciendo
-# las futuras compilaciones mucho más rápidas.
-COPY requirements.txt requirements.txt
+# --- Fase 2: Instalación de Dependencias ---
+# Copiamos solo el archivo de requisitos primero.
+# Esto aprovecha el caché de Docker: si no cambias tus dependencias,
+# Docker no las reinstalará en cada build, haciendo el proceso mucho más rápido.
+COPY requirements.txt .
 
-# Instalamos todas las librerías necesarias.
-# '--no-cache-dir' asegura que no se guarde la caché de pip, manteniendo la imagen ligera.
-# '--upgrade pip' es una buena práctica para tener la última versión de pip.
-RUN pip install --no-cache-dir --upgrade pip -r requirements.txt
+# Instalamos las dependencias de Python.
+# --no-cache-dir asegura que no se guarde caché de pip, manteniendo la imagen pequeña.
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-# --- Etapa 4: Copiar el Código de la Aplicación ---
-# Ahora copiamos el resto de nuestro código (main.py) al directorio de trabajo.
+# --- Fase 3: Copiar la Aplicación ---
+# Ahora copiamos el resto del código de tu aplicación al contenedor.
 COPY . .
 
-# --- Etapa 5: Exponer el Puerto ---
-# Le decimos a Docker que el contenedor escuchará en el puerto 8000.
-# EasyPanel usará esta información para saber a qué puerto dirigir el tráfico.
-EXPOSE 8000
+# --- Fase 4: Configuración de Red y Ejecución ---
+# Exponemos el puerto en el que correrá Uvicorn dentro del contenedor.
+# Easypanel se encargará de mapear este puerto al mundo exterior.
+EXPOSE 8080
 
-# --- Etapa 6: Comando de Ejecución ---
-# Este es el comando que se ejecutará cuando el contenedor se inicie.
-# Es el mismo que usamos para probar en local, asegurando que la aplicación
-# sea accesible desde fuera del contenedor.
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Este es el comando que se ejecutará cuando el contenedor inicie.
+# Le dice a Uvicorn que corra la app 'app' que se encuentra en el archivo 'main_cadquery.py'.
+# --host 0.0.0.0 es crucial para que sea accesible desde fuera del contenedor.
+CMD ["uvicorn", "main_cadquery:app", "--host", "0.0.0.0", "--port", "8080"]
