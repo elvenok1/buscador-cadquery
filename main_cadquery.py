@@ -33,14 +33,14 @@ client.get_collection(collection_name=COLLECTION_NAME)
 print(f"Conexión exitosa. Colección '{COLLECTION_NAME}' encontrada.")
     
 # --- Modelos de datos Pydantic ---
-class SearchResult(BaseModel):
-id: str
-score: float
-payload: Dict[str, Any]
+    class SearchResult(BaseModel):
+    id: str
+    score: float
+    payload: Dict[str, Any]
 
-class SearchResponse(BaseModel):
-status: str
-resultados: List[SearchResult]
+    class SearchResponse(BaseModel):
+    status: str
+    resultados: List[SearchResult]
 
 # --- Inicialización de FastAPI ---
 app = FastAPI(
@@ -50,7 +50,7 @@ description="Un servicio para encontrar ejemplos de código y documentación de 
 
 # --- Endpoint de Búsqueda ---
 @app.get("/buscar", response_model=SearchResponse)
-async def search_cadquery_docs(question: str, top_k: int = 3):
+    async def search_cadquery_docs(question: str, top_k: int = 3):
 print(f"Recibida pregunta para CadQuery: '{question}'")
         
 vector_pregunta = model.encode(question).tolist()
@@ -64,12 +64,13 @@ with_payload=True
         
 resultados_limpios = [
 SearchResult(id=str(hit.id), score=hit.score, payload=hit.payload) 
-for hit in search_results_raw
+    for hit in search_results_raw
 ]
         
-return SearchResponse(status="success", resultados=resultados_limpios)
+    return SearchResponse(status="success", resultados=resultados_limpios)
 
 @app.get("/")
 def read_root():
 
 return {"status": "Servicio de búsqueda de CadQuery activo."}
+
